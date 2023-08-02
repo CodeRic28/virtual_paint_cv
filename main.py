@@ -19,9 +19,11 @@ myColorValues = [
     [255,153,51]
 ]
 
+myPoints = [] # [x,y,colorIndex]
 def findColor(img, myColors,myColorValues):
     imgHSV = cv2.cvtColor(img, cv2.COLOR_BGR2HSV)
     count = 0
+    newPoints = []
     for color in myColors:
         lower = np.array(color[0:3])
         upper = np.array(color[3:6])
@@ -30,7 +32,10 @@ def findColor(img, myColors,myColorValues):
         # cv2.imshow(str(color[0]),result)
         x,y = getContours(mask)
         cv2.circle(imgResult,(x,y),10,myColorValues[count],cv2.FILLED)
+        if x!=0 and y!=0:
+            newPoints.append([x,y,count])
         count+=1
+    return newPoints
 
 def getContours(img):
     x,y,w,h = -1,-1,-1,-1
@@ -46,9 +51,19 @@ def getContours(img):
             x, y, w, h = cv2.boundingRect(approx)
     return x+w//2,y
 
+def drawOnCanvas(myPoints,myColorVales):
+    for point in myPoints:
+        cv2.circle(imgResult,(point[0],point[1]),10,myColorVales[point[2]],cv2.FILLED)
+
 while True:
     success, img = cap.read()
     imgResult = img.copy()
+    newPoints = findColor(img,myColors,myColorValues)
+    if len(newPoints)!=0:
+        for newP in newPoints:
+            myPoints.append(newP)
+    if len(newPoints)!=0:
+        drawOnCanvas(myPoints,myColorValues)
     findColor(img, myColors,myColorValues)
     cv2.imshow("Result", imgResult)
 
